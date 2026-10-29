@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Product Details</h1>
+        <p>Learn more about our product</p>
+    </header>
+
+    <main>
+        <div id="product-details" class="product-card">
+            <p>Loading product details...</p>
+        </div>
+
+        <p><a href="/" class="button">Back to Products</a></p>
+    </main>
+
+    <script>
+        async function loadProduct() {
+            const container = document.getElementById("product-details");
+
+            const productId = window.location.pathname.split("/").pop();
+
+            try {
+                const response = await fetch("/api/products/" + productId);
+
+                if (!response.ok) {
+                    throw new Error("Product not found");
+                }
+
+                const product = await response.json();
+
+                container.replaceChildren();
+
+                const image = document.createElement("img");
+                image.src = "/static/images/" + product.image;
+                image.alt = product.name;
+                image.onerror = function () {
+                    this.style.display = "none";
+                };
+
+                const name = document.createElement("h2");
+                name.textContent = product.name;
+
+                const description = document.createElement("p");
+                description.textContent = product.description;
+
+                const price = document.createElement("p");
+                price.className = "price";
+                price.textContent =
+                    "Price: ₹" + Number(product.price).toLocaleString("en-IN");
+
+                container.append(image, name, description, price);
+
+            } catch (error) {
+                container.textContent = "Product not found.";
+            }
+        }
+
+        loadProduct();
+    </script>
+
+</body>
+</html>

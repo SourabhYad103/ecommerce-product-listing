@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My E-Commerce Store</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <header>
+        <h1>My E-Commerce Store</h1>
+        <p>Find the products you need</p>
+    </header>
+
+    <main>
+        <h2>Our Products</h2>
+
+        <input
+            type="text"
+            id="search"
+            placeholder="Search products..."
+        >
+
+        <div id="products" class="product-container">
+            <p>Loading products...</p>
+        </div>
+    </main>
+
+    <script>
+        const productsContainer = document.getElementById("products");
+        const searchInput = document.getElementById("search");
+
+        let allProducts = [];
+
+        async function loadProducts() {
+            try {
+                const response = await fetch("/api/products");
+
+                if (!response.ok) {
+                    throw new Error("Failed to load products");
+                }
+
+                allProducts = await response.json();
+                displayProducts(allProducts);
+
+            } catch (error) {
+                productsContainer.textContent =
+                    "Unable to load products. Please try again.";
+                console.error(error);
+            }
+        }
+
+        function displayProducts(products) {
+            productsContainer.replaceChildren();
+
+            if (products.length === 0) {
+                productsContainer.textContent = "No products found.";
+                return;
+            }
+
+            products.forEach(product => {
+                const card = document.createElement("div");
+                card.className = "product-card";
+
+                const image = document.createElement("img");
+                image.src = "/static/images/" + product.image;
+                image.alt = product.name;
+                image.onerror = function () {
+                    this.style.display = "none";
+                };
+
+                const name = document.createElement("h3");
+                name.textContent = product.name;
+
+                const description = document.createElement("p");
+                description.textContent = product.description;
+
+                const price = document.createElement("p");
+                price.className = "price";
+                price.textContent = "₹" + Number(product.price).toLocaleString("en-IN");
+
+                const button = document.createElement("a");
+                button.href = "/product/" + product.id;
+                button.className = "button";
+                button.textContent = "View Details";
+
+                card.append(image, name, description, price, button);
+                productsContainer.appendChild(card);
+            });
+        }
+
+        searchInput.addEventListener("input", function () {
+            const searchTerm = this.value.toLowerCase();
+
+            const filteredProducts = allProducts.filter(product =>
+                product.name.toLowerCase().includes(searchTerm) ||
+                product.description.toLowerCase().includes(searchTerm)
+            );
+
+            displayProducts(filteredProducts);
+        });
+
+        loadProducts();
+    </script>
+
+</body>
+</html>
